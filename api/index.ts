@@ -10,5 +10,4 @@ app.use(express.urlencoded({ extended: true }));
 // Register all Express API routes
 registerRoutes(app);
 
-// Export the Express app as a serverless function handler
 export default app;
