@@ -1,14 +1,14 @@
-import { Express, Request, Response, NextFunction } from "express";
+import * as express from "express";
 import { prisma } from "./db";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "shashti_secret_temp_key_12345";
 
-export interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest extends express.Request {
   user?: any;
 }
 
-export function authenticateJWT(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export function authenticateJWT(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     return res.status(401).json({ error: "Access denied. No token provided." });
@@ -28,9 +28,9 @@ export function authenticateJWT(req: AuthenticatedRequest, res: Response, next: 
   }
 }
 
-export function registerRoutes(app: Express) {
+export function registerRoutes(app: any) {
   // Admin Login route
-  app.post("/api/admin/login", async (req: Request, res: Response) => {
+  app.post("/api/admin/login", async (req: express.Request, res: express.Response) => {
     try {
       const { email, password } = req.body;
 
@@ -51,7 +51,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Submit a new application
-  app.post("/api/apply", async (req: Request, res: Response) => {
+  app.post("/api/apply", async (req: express.Request, res: express.Response) => {
     try {
       const { fullName, phone, email, city, state, pincode, categories, additionalInfo } = req.body;
 
@@ -81,7 +81,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Get all applications (ordered by newest first)
-  app.get("/api/applications", authenticateJWT as any, async (_req: Request, res: Response) => {
+  app.get("/api/applications", authenticateJWT as any, async (_req: express.Request, res: express.Response) => {
     try {
       const applications = await prisma.application.findMany({
         orderBy: { createdAt: "desc" },
@@ -94,7 +94,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Update application status (PENDING, APPROVED, REJECTED, CONTACTED)
-  app.patch("/api/applications/:id", authenticateJWT as any, async (req: Request, res: Response) => {
+  app.patch("/api/applications/:id", authenticateJWT as any, async (req: express.Request, res: express.Response) => {
     try {
       const id = parseInt(req.params.id);
       const { status } = req.body;
@@ -120,7 +120,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Delete an application
-  app.delete("/api/applications/:id", authenticateJWT as any, async (req: Request, res: Response) => {
+  app.delete("/api/applications/:id", authenticateJWT as any, async (req: express.Request, res: express.Response) => {
     try {
       const id = parseInt(req.params.id);
 
