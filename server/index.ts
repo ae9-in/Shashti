@@ -44,8 +44,8 @@ async function startServer() {
       }
     });
   } else {
-    // In production: serve built static files from dist/public
-    const staticPath = path.resolve(__dirname, "public");
+    // In production: serve built static files from dist
+    const staticPath = __dirname;
     app.use(express.static(staticPath));
     
     app.get("*", (_req, res) => {
