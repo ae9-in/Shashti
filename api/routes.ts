@@ -1,6 +1,6 @@
 import express from "express";
 import jwt from "jsonwebtoken";
-import { prisma } from "./db";
+import { prisma } from "./db.js";
 
 // ---------------------------------------------------------------------------
 // Constants
