@@ -353,7 +353,7 @@ export default function Admin() {
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#241108]/40" />
                     <Input
                       type="email"
-                      placeholder="admin@gmail.com"
+                      placeholder="Enter your email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -370,7 +370,7 @@ export default function Admin() {
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#241108]/40" />
                     <Input
                       type="password"
-                      placeholder="••••••••"
+                      placeholder="Enter your password"
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}

@@ -1,14 +1,18 @@
-import * as express from "express";
-import { prisma } from "./db";
+import express, { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { prisma } from "./db";
 
 const JWT_SECRET = process.env.JWT_SECRET || "shashti_secret_temp_key_12345";
 
-export interface AuthenticatedRequest extends express.Request {
+export interface AuthenticatedRequest extends Request {
   user?: any;
 }
 
-export function authenticateJWT(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
+export function authenticateJWT(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     return res.status(401).json({ error: "Access denied. No token provided." });
@@ -21,16 +25,16 @@ export function authenticateJWT(req: AuthenticatedRequest, res: express.Response
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;
+    (req as any).user = decoded;
     next();
-  } catch (error) {
+  } catch {
     return res.status(401).json({ error: "Invalid or expired token." });
   }
 }
 
-export function registerRoutes(app: any) {
-  // Admin Login route
-  app.post("/api/admin/login", async (req: express.Request, res: express.Response) => {
+export function registerRoutes(app: ReturnType<typeof express>) {
+  // Admin Login — no DB required
+  app.post("/api/admin/login", async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;
 
@@ -38,7 +42,10 @@ export function registerRoutes(app: any) {
         return res.status(400).json({ error: "Email and password are required" });
       }
 
-      if (email === "admin@gmail.com" && password === "admin123") {
+      const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@gmail.com";
+      const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+
+      if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
         const token = jwt.sign({ email }, JWT_SECRET, { expiresIn: "24h" });
         return res.json({ success: true, token });
       }
@@ -51,9 +58,10 @@ export function registerRoutes(app: any) {
   });
 
   // Submit a new application
-  app.post("/api/apply", async (req: express.Request, res: express.Response) => {
+  app.post("/api/apply", async (req: Request, res: Response) => {
     try {
-      const { fullName, phone, email, city, state, pincode, categories, additionalInfo } = req.body;
+      const { fullName, phone, email, city, state, pincode, categories, additionalInfo } =
+        req.body;
 
       if (!fullName || !phone || !email || !city || !state || !pincode) {
         return res.status(400).json({ error: "All required fields must be provided" });
@@ -76,67 +84,77 @@ export function registerRoutes(app: any) {
       return res.status(201).json({ success: true, application });
     } catch (error) {
       console.error("Error creating application:", error);
-      return res.status(500).json({ error: "Failed to submit application" });
+      return res
+        .status(500)
+        .json({ error: "Failed to submit application. Please check your database connection." });
     }
   });
 
   // Get all applications (ordered by newest first)
-  app.get("/api/applications", authenticateJWT as any, async (_req: express.Request, res: express.Response) => {
-    try {
-      const applications = await prisma.application.findMany({
-        orderBy: { createdAt: "desc" },
-      });
-      return res.json(applications);
-    } catch (error) {
-      console.error("Error fetching applications:", error);
-      return res.status(500).json({ error: "Failed to fetch applications" });
-    }
-  });
-
-  // Update application status (PENDING, APPROVED, REJECTED, CONTACTED)
-  app.patch("/api/applications/:id", authenticateJWT as any, async (req: express.Request, res: express.Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      const { status } = req.body;
-
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid application ID" });
+  app.get(
+    "/api/applications",
+    authenticateJWT as any,
+    async (_req: Request, res: Response) => {
+      try {
+        const applications = await prisma.application.findMany({
+          orderBy: { createdAt: "desc" },
+        });
+        return res.json(applications);
+      } catch (error) {
+        console.error("Error fetching applications:", error);
+        return res.status(500).json({ error: "Failed to fetch applications" });
       }
-
-      if (!status) {
-        return res.status(400).json({ error: "Status must be provided" });
-      }
-
-      const application = await prisma.application.update({
-        where: { id },
-        data: { status },
-      });
-
-      return res.json({ success: true, application });
-    } catch (error) {
-      console.error("Error updating application:", error);
-      return res.status(500).json({ error: "Failed to update application" });
     }
-  });
+  );
+
+  // Update application status
+  app.patch(
+    "/api/applications/:id",
+    authenticateJWT as any,
+    async (req: Request, res: Response) => {
+      try {
+        const id = parseInt(req.params.id);
+        const { status } = req.body;
+
+        if (isNaN(id)) {
+          return res.status(400).json({ error: "Invalid application ID" });
+        }
+        if (!status) {
+          return res.status(400).json({ error: "Status must be provided" });
+        }
+
+        const application = await prisma.application.update({
+          where: { id },
+          data: { status },
+        });
+
+        return res.json({ success: true, application });
+      } catch (error) {
+        console.error("Error updating application:", error);
+        return res.status(500).json({ error: "Failed to update application" });
+      }
+    }
+  );
 
   // Delete an application
-  app.delete("/api/applications/:id", authenticateJWT as any, async (req: express.Request, res: express.Response) => {
-    try {
-      const id = parseInt(req.params.id);
+  app.delete(
+    "/api/applications/:id",
+    authenticateJWT as any,
+    async (req: Request, res: Response) => {
+      try {
+        const id = parseInt(req.params.id);
 
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid application ID" });
+        if (isNaN(id)) {
+          return res.status(400).json({ error: "Invalid application ID" });
+        }
+
+        await prisma.application.delete({ where: { id } });
+
+        return res.json({ success: true });
+      } catch (error) {
+        console.error("Error deleting application:", error);
+        return res.status(500).json({ error: "Failed to delete application" });
       }
-
-      await prisma.application.delete({
-        where: { id },
-      });
-
-      return res.json({ success: true });
-    } catch (error) {
-      console.error("Error deleting application:", error);
-      return res.status(500).json({ error: "Failed to delete application" });
     }
-  });
+  );
 }
-
