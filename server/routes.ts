@@ -21,8 +21,8 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export function authenticateJWT(
-  req: AuthenticatedRequest,
-  res: Response,
+  req: any,
+  res: any,
   next: NextFunction
 ): void {
   const authHeader = req.headers.authorization;
@@ -52,12 +52,12 @@ export function authenticateJWT(
 // ---------------------------------------------------------------------------
 export function registerRoutes(app: ReturnType<typeof express>): void {
   // ── Ping (no DB, pure health check) ──────────────────────────────────────
-  app.get("/api/ping", (_req: Request, res: Response) => {
+  app.get("/api/ping", (_req: any, res: any) => {
     res.json({ ok: true, timestamp: new Date().toISOString() });
   });
 
   // ── DB Health Check ───────────────────────────────────────────────────────
-  app.get("/api/health", async (_req: Request, res: Response) => {
+  app.get("/api/health", async (_req: any, res: any) => {
     try {
       await prisma.$queryRaw`SELECT 1`;
       res.json({
@@ -80,7 +80,7 @@ export function registerRoutes(app: ReturnType<typeof express>): void {
   // ── Admin Login ───────────────────────────────────────────────────────────
   // POST /api/admin/login
   // Body: { email: string, password: string }
-  app.post("/api/admin/login", (req: Request, res: Response) => {
+  app.post("/api/admin/login", (req: any, res: any) => {
     try {
       const { email, password } = req.body ?? {};
 
@@ -112,7 +112,7 @@ export function registerRoutes(app: ReturnType<typeof express>): void {
   // ── Submit Application ────────────────────────────────────────────────────
   // POST /api/apply
   // Body: { fullName, phone, email, city, state, pincode, categories, additionalInfo? }
-  app.post("/api/apply", async (req: Request, res: Response) => {
+  app.post("/api/apply", async (req: any, res: any) => {
     try {
       const {
         fullName,
@@ -189,8 +189,8 @@ export function registerRoutes(app: ReturnType<typeof express>): void {
   // Requires: Bearer token
   app.get(
     "/api/applications",
-    authenticateJWT as express.RequestHandler,
-    async (_req: Request, res: Response) => {
+    authenticateJWT as any,
+    async (_req: any, res: any) => {
       try {
         const applications = await prisma.application.findMany({
           orderBy: { createdAt: "desc" },
@@ -209,8 +209,8 @@ export function registerRoutes(app: ReturnType<typeof express>): void {
   // Requires: Bearer token
   app.patch(
     "/api/applications/:id",
-    authenticateJWT as express.RequestHandler,
-    async (req: Request, res: Response) => {
+    authenticateJWT as any,
+    async (req: any, res: any) => {
       try {
         const id = parseInt(req.params.id, 10);
         if (isNaN(id) || id <= 0) {
@@ -259,8 +259,8 @@ export function registerRoutes(app: ReturnType<typeof express>): void {
   // Requires: Bearer token
   app.delete(
     "/api/applications/:id",
-    authenticateJWT as express.RequestHandler,
-    async (req: Request, res: Response) => {
+    authenticateJWT as any,
+    async (req: any, res: any) => {
       try {
         const id = parseInt(req.params.id, 10);
         if (isNaN(id) || id <= 0) {
