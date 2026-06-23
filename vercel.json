@@ -5,7 +5,7 @@
   "buildCommand": "pnpm run vercel-build",
   "functions": {
     "api/index.ts": {
-      "includeFiles": "api/generated/client/**"
+      "includeFiles": "api/_generated/client/**"
     }
   },
   "rewrites": [

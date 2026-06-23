@@ -112,7 +112,7 @@ temp/
 client/public/__manus__/version.json
 .project-config.json
 .manus-logs/
-api/generated/
+api/_generated/
 
 
 .vercel
