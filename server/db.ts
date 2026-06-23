@@ -1,38 +1,25 @@
-import { PrismaClient } from "./generated/client";
+import { PrismaClient } from "@prisma/client";
 
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
-
-let internalPrisma: PrismaClient | null = null;
-
-function getPrisma(): PrismaClient {
-  if (internalPrisma) return internalPrisma;
-
-  if (globalForPrisma.prisma) {
-    internalPrisma = globalForPrisma.prisma;
-    return internalPrisma;
-  }
-
-  try {
-    internalPrisma = new PrismaClient();
-    if (process.env.NODE_ENV !== "production") {
-      globalForPrisma.prisma = internalPrisma;
-    }
-    return internalPrisma;
-  } catch (error) {
-    console.error("Failed to initialize Prisma Client:", error);
-    throw error;
-  }
+declare global {
+  // eslint-disable-next-line no-var
+  var __prisma: PrismaClient | undefined;
 }
 
-// Export a proxy that forwards all property accesses to the lazily initialized PrismaClient.
-// This prevents Prisma initialization errors from blocking serverless startup for non-DB routes.
-export const prisma = new Proxy({} as PrismaClient, {
-  get(_target, prop) {
-    const client = getPrisma();
-    const value = Reflect.get(client, prop);
-    if (typeof value === "function") {
-      return value.bind(client);
-    }
-    return value;
-  },
-});
+function createPrismaClient(): PrismaClient {
+  const client = new PrismaClient({
+    log:
+      process.env.NODE_ENV === "development"
+        ? ["query", "error", "warn"]
+        : ["error"],
+  });
+  return client;
+}
+
+// In development, reuse the same client across hot reloads to avoid
+// exhausting DB connections. In production, create once per cold start.
+export const prisma: PrismaClient =
+  global.__prisma ?? createPrismaClient();
+
+if (process.env.NODE_ENV !== "production") {
+  global.__prisma = prisma;
+}
