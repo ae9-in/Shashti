@@ -3,6 +3,11 @@
   "outputDirectory": "dist",
   "framework": null,
   "buildCommand": "pnpm run vercel-build",
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "api/generated/client/**"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/:path*",
