@@ -2,8 +2,8 @@
   "version": 2,
   "cleanUrls": true,
   "outputDirectory": "dist",
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/index.ts" },
-    { "src": "/((?!api).*)" , "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.ts" },
+    { "source": "/((?!api).*)" , "destination": "/index.html" }
   ]
 }
