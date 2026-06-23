@@ -2,7 +2,7 @@
   "version": 2,
   "outputDirectory": "dist",
   "framework": null,
-  "buildCommand": "prisma generate && vite build",
+  "buildCommand": "pnpm run vercel-build",
   "rewrites": [
     {
       "source": "/api/:path*",
