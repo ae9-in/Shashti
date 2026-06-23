@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from "express";
+import express from "express";
 import { registerRoutes } from "../server/routes";
 
 const app = express();
@@ -12,7 +12,7 @@ app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 // ---------------------------------------------------------------------------
 // CORS — allow all origins (adjust if needed for production)
 // ---------------------------------------------------------------------------
-app.use((_req: Request, res: Response, next: NextFunction) => {
+app.use((_req: any, res: any, next: any) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
     "Access-Control-Allow-Methods",
@@ -26,7 +26,7 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
 });
 
 // Handle preflight OPTIONS requests
-app.options("*", (_req: Request, res: Response) => {
+app.options("*", (_req: any, res: any) => {
   res.sendStatus(204);
 });
 
@@ -38,14 +38,14 @@ registerRoutes(app);
 // ---------------------------------------------------------------------------
 // 404 handler — for unknown API paths
 // ---------------------------------------------------------------------------
-app.use((_req: Request, res: Response) => {
+app.use((_req: any, res: any) => {
   res.status(404).json({ error: "API route not found." });
 });
 
 // ---------------------------------------------------------------------------
 // Global error handler — ensures Vercel never returns an HTML 500 page
 // ---------------------------------------------------------------------------
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+app.use((err: any, _req: any, res: any, _next: any) => {
   console.error("[API] Unhandled error:", err.name, err.message);
   res.status(500).json({
     error: "Internal server error.",

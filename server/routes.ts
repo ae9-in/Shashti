@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from "express";
+import express from "express";
 import jwt from "jsonwebtoken";
 import { prisma } from "./db";
 
@@ -16,14 +16,15 @@ type ApplicationStatus = (typeof VALID_STATUSES)[number];
 // ---------------------------------------------------------------------------
 // Middleware: JWT Authentication
 // ---------------------------------------------------------------------------
-export interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest {
   user?: jwt.JwtPayload | string;
+  [key: string]: any;
 }
 
 export function authenticateJWT(
   req: any,
   res: any,
-  next: NextFunction
+  next: any
 ): void {
   const authHeader = req.headers.authorization;
 
