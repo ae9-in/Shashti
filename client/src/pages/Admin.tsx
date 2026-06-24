@@ -133,7 +133,7 @@ export default function Admin() {
         throw new Error("Failed to fetch applications");
       }
       const data = await response.json();
-      setApplications(data);
+      setApplications(data.applications ?? []);
     } catch (err: any) {
       toast.error(err.message || "Failed to load applications");
     } finally {
